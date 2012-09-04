@@ -21,7 +21,7 @@ Base = declarative_base()
 class Module(Base):
     __tablename__ = 'modules'
     id = Column(Integer, primary_key=True)
-    title = Column(Text, unique=True)
+    title = Column(Text, unique=False)
     content = Column(Integer)
 
     def __init__(self, title, content):
