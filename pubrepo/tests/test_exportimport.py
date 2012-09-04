@@ -57,7 +57,7 @@ class ExportTest(unittest.TestCase):
 
         from ..exportimport import export_module
         with open(file_path, 'wb') as file:
-            file.write(export_module(module).read())
+            file.write(export_module(module).getvalue())
 
         # Check that the file is a valid .zip.
         self.assertTrue(zipfile.is_zipfile(file_path))
