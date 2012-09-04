@@ -3,3 +3,7 @@
 *~
 *.pyc
 *.egg-info
+
+# Resources #
+#############
+pubrepo.db
