@@ -17,7 +17,10 @@ def export_module(module, zip_file=_marker):
     stream = StringIO()
     # TODO Export resources...
     # TODO Handle the case where a zip_file is given.
-    with ZipFile(stream, 'w') as z:
-        z.writestr("{0}.html".format(module.id), module.content)
+    with ZipFile(stream, 'w') as zipfile:
+        zipfile.writestr("{0}.html".format(module.id), module.content)
+        for resource in module.resources:
+            zipfile.writestr("resources/{0}".format(resource.filename),
+                             resource.data)
     stream.seek(0)
     return stream

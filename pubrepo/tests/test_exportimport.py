@@ -9,6 +9,7 @@ from pyramid import testing
 from ..models import DBSession
 
 
+HERE = os.path.abspath(os.path.dirname(__file__))
 HTML_CONTENT = """\
 <html>
 <head><title>Module</title></head>
@@ -16,13 +17,15 @@ HTML_CONTENT = """\
   <h1>Module</h1>
   <p>A module with text... text... text...</p>
   <p>And an image:</p>
-  <img src="">
+  <!-- see also data/image.png -->
+  <img src="image.png">
 </body>
 </html>
 """
 
 
 class ExportTest(unittest.TestCase):
+
     def setUp(self):
         self.config = testing.setUp()
         from sqlalchemy import create_engine
@@ -30,12 +33,19 @@ class ExportTest(unittest.TestCase):
         from ..models import (
             Base,
             Module,
+            Resource,
             )
         DBSession.configure(bind=engine)
         Base.metadata.create_all(engine)
         with transaction.manager:
-            model = Module(title='Module 1.1', content=HTML_CONTENT)
-            DBSession.add(model)
+            module = Module(title='Module 1.1', content=HTML_CONTENT)
+            DBSession.add(module)
+            module = DBSession.query(Module).first()
+            image_path = os.path.join(HERE, 'data/image.png')
+            resource = Resource('image.png',
+                                open(image_path).read(),
+                                module)
+            DBSession.add(resource)
         # Create the directory where the export can be temporarily
         # stored.
         self.export_path = tempfile.mkdtemp()
@@ -65,6 +75,8 @@ class ExportTest(unittest.TestCase):
         with zipfile.ZipFile(zipfile_path) as file:
             file_list = file.namelist()
             file.extractall(self.export_path)
-        self.assertIn('{0}.html'.format(module.id), file_list)
-        self.assertIn('resources/image.jpg', file_list)
-        # Check the html content and resource(s).
+        self.assertIn("{0}.html".format(module.id), file_list)
+        self.assertIn("resources/image.png", file_list)
+        # Check resource(s) is present and matches the information we
+        # have stored.
+        resources = module.resources
