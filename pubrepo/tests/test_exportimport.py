@@ -53,14 +53,18 @@ class ExportTest(unittest.TestCase):
         # so we need to push that stream on to the filesystem to read
         # from it more than once.
         export_filename = 'module_export.zip'
-        file_path = os.path.join(self.export_path, export_filename)
+        zipfile_path = os.path.join(self.export_path, export_filename)
 
         from ..exportimport import export_module
-        with open(file_path, 'wb') as file:
+        with open(zipfile_path, 'wb') as file:
             file.write(export_module(module).getvalue())
 
         # Check that the file is a valid .zip.
-        self.assertTrue(zipfile.is_zipfile(file_path))
+        self.assertTrue(zipfile.is_zipfile(zipfile_path))
         # Expand the contents of the zip file.
-
+        with zipfile.ZipFile(zipfile_path) as file:
+            file_list = file.namelist()
+            file.extractall(self.export_path)
+        self.assertIn('{0}.html'.format(module.id), file_list)
+        self.assertIn('resources/image.jpg', file_list)
         # Check the html content and resource(s).
