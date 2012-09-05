@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import hashlib
 import tempfile
 import unittest
 import zipfile
@@ -112,6 +113,16 @@ class ExportTest(unittest.TestCase):
 
         with zipfile.ZipFile(zipfile_path) as file:
             file.extractall(self.export_path)
+
         # Check resource(s) is present and matches the information we
         # have stored.
-        resources = module.resources
+        # Check the HTML document and the image source path.
+        html_doc = open(os.path.join(self.export_path, '1.html')).read()
+        self.assertTrue(html_doc.find("./resources/image.png") >= 0)
+        # Check the hash of the resource(s).
+        for resource in module.resources:
+            resource_path = os.path.join(self.export_path, 'resources',
+                                         resource.filename)
+            with open(resource_path, 'r') as file:
+                hash = hashlib.sha1(file.read()).hexdigest()
+            self.assertEqual(hash, resource.hash)
